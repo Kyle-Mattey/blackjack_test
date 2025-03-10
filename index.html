@@ -12,17 +12,119 @@
                 .catch(err => console.log("Service Worker Failed:", err));
         }
     </script>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; }
+        .container { max-width: 500px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px; }
+        .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 20px; }
+        .button { padding: 10px; font-size: 16px; cursor: pointer; }
+        .green { background-color: green; color: white; }
+        .red { background-color: red; color: white; }
+    </style>
 </head>
 <body>
-    <h1>Blackjack Card Counter</h1>
-    <p><strong>Running Count:</strong> <span id="runningCount">0</span></p>
-    <button onclick="updateCount('T')">+10</button>
+
+    <div class="container">
+        <h1>Blackjack Card Counter</h1>
+        <p><strong>Running Count:</strong> <span id="runningCount">0</span></p>
+        <p><strong>True Count:</strong> <span id="trueCount">0.0</span></p>
+        <p><strong>Estimated Decks Remaining:</strong> <span id="decksRemaining">6</span></p>
+        <p><strong>Dealt Cards:</strong> <span id="dealtCards"></span></p>
+        <p><strong>Best Move:</strong> <span id="recommendation">N/A</span></p>
+
+        <div class="grid">
+            <button class="button" onclick="updateCount('2')">2</button>
+            <button class="button" onclick="updateCount('3')">3</button>
+            <button class="button" onclick="updateCount('4')">4</button>
+            <button class="button" onclick="updateCount('5')">5</button>
+            <button class="button" onclick="updateCount('6')">6</button>
+            <button class="button" onclick="updateCount('7')">7</button>
+            <button class="button" onclick="updateCount('8')">8</button>
+            <button class="button" onclick="updateCount('9')">9</button>
+            <button class="button" onclick="updateCount('T')">10</button>
+            <button class="button" onclick="updateCount('J')">J</button>
+            <button class="button" onclick="updateCount('Q')">Q</button>
+            <button class="button" onclick="updateCount('K')">K</button>
+            <button class="button" onclick="updateCount('A')">A</button>
+        </div>
+
+        <div style="margin-top: 20px;">
+            <label>Your Hand:</label>
+            <input type="text" id="playerHand" placeholder="e.g., 8 8">
+            <label>Dealer's Upcard:</label>
+            <input type="text" id="dealerUpcard" placeholder="e.g., 6">
+        </div>
+
+        <button class="button green" onclick="getBestMove()">Get Best Move</button>
+        <button class="button red" onclick="resetGame()">Reset</button>
+    </div>
+
     <script>
         let runningCount = 0;
+        let dealtCards = [];
+        const cardValues = { "2": 1, "3": 1, "4": 1, "5": 1, "6": 1, "7": 0, "8": 0, "9": 0, "T": -1, "J": -1, "Q": -1, "K": -1, "A": -1 };
+
+        function estimateDecksRemaining() {
+            let totalCardsPlayed = dealtCards.length;
+            if (totalCardsPlayed < 52) return 6;
+            if (totalCardsPlayed < 104) return 5;
+            if (totalCardsPlayed < 156) return 4;
+            if (totalCardsPlayed < 208) return 3;
+            if (totalCardsPlayed < 260) return 2;
+            return 1;
+        }
+
         function updateCount(card) {
-            runningCount += 1;
-            document.getElementById("runningCount").innerText = runningCount;
+            if (card in cardValues) {
+                runningCount += cardValues[card];
+                dealtCards.push(card);
+                document.getElementById("runningCount").innerText = runningCount;
+                let decksRemaining = estimateDecksRemaining();
+                document.getElementById("trueCount").innerText = (runningCount / decksRemaining).toFixed(2);
+                document.getElementById("decksRemaining").innerText = decksRemaining;
+                document.getElementById("dealtCards").innerText = dealtCards.join(", ");
+            }
+        }
+
+        function getBestMove() {
+            let playerHand = document.getElementById("playerHand").value.toUpperCase().split(" ");
+            let dealerUpcard = document.getElementById("dealerUpcard").value.toUpperCase();
+            if (!playerHand.length || !dealerUpcard) return;
+
+            let firstCard = playerHand[0];
+            let secondCard = playerHand[1];
+            let total = playerHand.reduce((sum, card) => sum + (card === "A" ? 11 : card === "T" || ["J", "Q", "K"].includes(card) ? 10 : parseInt(card)), 0);
+
+            let recommendation = "Hit";
+            if (firstCard === secondCard) {
+                if (["A", "8"].includes(firstCard)) recommendation = "Split";
+                else if (firstCard === "5" || firstCard === "T") recommendation = "Do Not Split";
+                else if (["2", "3", "6", "7"].includes(firstCard) && ["2", "3", "4", "5", "6"].includes(dealerUpcard)) recommendation = "Split";
+                else if (firstCard === "4" && ["5", "6"].includes(dealerUpcard)) recommendation = "Split";
+                else recommendation = "Do Not Split";
+            } else {
+                if (total === 11) recommendation = "Double Down";
+                else if (total === 10 && !["T", "A"].includes(dealerUpcard)) recommendation = "Double Down";
+                else if (total === 9 && ["3", "4", "5", "6"].includes(dealerUpcard)) recommendation = "Double Down";
+                else if (total >= 17) recommendation = "Stand";
+                else if (total <= 11) recommendation = "Hit";
+                else if (total >= 12 && total <= 16) {
+                    recommendation = ["2", "3", "4", "5", "6"].includes(dealerUpcard) ? "Stand" : "Hit";
+                }
+            }
+
+            document.getElementById("recommendation").innerText = recommendation;
+        }
+
+        function resetGame() {
+            runningCount = 0;
+            dealtCards = [];
+            document.getElementById("runningCount").innerText = "0";
+            document.getElementById("trueCount").innerText = "0.0";
+            document.getElementById("decksRemaining").innerText = "6";
+            document.getElementById("dealtCards").innerText = "";
+            document.getElementById("recommendation").innerText = "N/A";
         }
     </script>
+
 </body>
 </html>
