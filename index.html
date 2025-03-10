@@ -89,35 +89,43 @@ p { font-size: 20px; }
             }
         }
 
-        function getBestMove() {
-            let playerHand = document.getElementById("playerHand").value.toUpperCase().split(" ");
-            let dealerUpcard = document.getElementById("dealerUpcard").value.toUpperCase();
-            if (!playerHand.length || !dealerUpcard) return;
+       function getBestMove() {
+    let playerHand = document.getElementById("playerHand").value.toUpperCase().split(" ");
+    let dealerUpcard = document.getElementById("dealerUpcard").value.toUpperCase();
+    if (!playerHand.length || !dealerUpcard) return;
 
-            let firstCard = playerHand[0];
-            let secondCard = playerHand[1];
-            let total = playerHand.reduce((sum, card) => sum + (card === "A" ? 11 : card === "T" || ["J", "Q", "K"].includes(card) ? 10 : parseInt(card)), 0);
+    let firstCard = playerHand[0];
+    let secondCard = playerHand[1];
+    let total = playerHand.reduce((sum, card) => sum + (card === "A" ? 11 : card === "T" || ["J", "Q", "K"].includes(card) ? 10 : parseInt(card)), 0);
+    let recommendation = "Hit";
 
-            let recommendation = "Hit";
-            if (firstCard === secondCard) {
-                if (["A", "8"].includes(firstCard)) recommendation = "Split";
-                else if (firstCard === "5" || firstCard === "T") recommendation = "Do Not Split";
-                else if (["2", "3", "6", "7"].includes(firstCard) && ["2", "3", "4", "5", "6"].includes(dealerUpcard)) recommendation = "Split";
-                else if (firstCard === "4" && ["5", "6"].includes(dealerUpcard)) recommendation = "Split";
-                else recommendation = "Do Not Split";
-            } else {
-                if (total === 11) recommendation = "Double Down";
-                else if (total === 10 && !["T", "A"].includes(dealerUpcard)) recommendation = "Double Down";
-                else if (total === 9 && ["3", "4", "5", "6"].includes(dealerUpcard)) recommendation = "Double Down";
-                else if (total >= 17) recommendation = "Stand";
-                else if (total <= 11) recommendation = "Hit";
-                else if (total >= 12 && total <= 16) {
-                    recommendation = ["2", "3", "4", "5", "6"].includes(dealerUpcard) ? "Stand" : "Hit";
-                }
-            }
+    // ✅ **Improved Splitting Strategy**
+    if (firstCard === secondCard) {
+        if (["A", "8"].includes(firstCard)) recommendation = "Split";
+        else if (firstCard === "5" || firstCard === "T") recommendation = "Do Not Split";
+        else if (["2", "3", "6", "7"].includes(firstCard) && ["2", "3", "4", "5", "6"].includes(dealerUpcard)) recommendation = "Split";
+        else if (firstCard === "4" && ["5", "6"].includes(dealerUpcard)) recommendation = "Split";
+        else if (firstCard === "9" && !["7", "10", "A"].includes(dealerUpcard)) recommendation = "Split";
+        else recommendation = "Do Not Split";
+    } 
 
-            document.getElementById("recommendation").innerText = recommendation;
-        }
+    // ✅ **Improved Doubling Strategy**
+    else if (total === 11) recommendation = "Double Down";
+    else if (total === 10 && !["T", "A"].includes(dealerUpcard)) recommendation = "Double Down";
+    else if (total === 9 && ["3", "4", "5", "6"].includes(dealerUpcard)) recommendation = "Double Down";
+    else if (total === 8 && ["5", "6"].includes(dealerUpcard) && trueCount >= 2) recommendation = "Double Down"; 
+
+    // ✅ **Hit / Stand Adjustments Based on True Count**
+    else if (total >= 17) recommendation = "Stand";
+    else if (total <= 11) recommendation = "Hit";
+    else if (total >= 12 && total <= 16) {
+        recommendation = ["2", "3", "4", "5", "6"].includes(dealerUpcard) ? "Stand" : "Hit";
+        if (trueCount >= 2 && total === 16) recommendation = "Stand"; // Stand on 16 vs high if True Count is high
+        if (trueCount <= -1 && total === 13) recommendation = "Hit"; // Hit on 13 if True Count is bad
+    }
+
+    document.getElementById("recommendation").innerText = recommendation;
+}
 
         function resetGame() {
             runningCount = 0;
