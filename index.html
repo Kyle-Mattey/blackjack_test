@@ -89,6 +89,34 @@ p { font-size: 20px; }
             }
         }
 
+        function predictNextCard() {
+    let totalCardsPlayed = dealtCards.length;
+    let totalDecks = estimateDecksRemaining();
+    let remainingCards = totalDecks * 52 - totalCardsPlayed;
+
+    let remainingCardCounts = { "2": 4 * totalDecks, "3": 4 * totalDecks, "4": 4 * totalDecks, "5": 4 * totalDecks, "6": 4 * totalDecks,
+        "7": 4 * totalDecks, "8": 4 * totalDecks, "9": 4 * totalDecks, "T": 16 * totalDecks, "J": 4 * totalDecks, "Q": 4 * totalDecks, "K": 4 * totalDecks, "A": 4 * totalDecks };
+
+    // Remove counted cards
+    dealtCards.forEach(card => {
+        if (remainingCardCounts[card] > 0) {
+            remainingCardCounts[card]--;
+        }
+    });
+
+    // Count remaining high & low cards
+    let highCards = remainingCardCounts["T"] + remainingCardCounts["J"] + remainingCardCounts["Q"] + remainingCardCounts["K"] + remainingCardCounts["A"];
+    let lowCards = remainingCardCounts["2"] + remainingCardCounts["3"] + remainingCardCounts["4"] + remainingCardCounts["5"] + remainingCardCounts["6"];
+
+    // Calculate probabilities
+    let highCardChance = ((highCards / remainingCards) * 100).toFixed(1);
+    let lowCardChance = ((lowCards / remainingCards) * 100).toFixed(1);
+
+    // Display prediction
+    let predictionMessage = `High Card Chance: ${highCardChance}% | Low Card Chance: ${lowCardChance}%`;
+    document.getElementById("cardPrediction").innerText = predictionMessage;
+}
+
        function getBestMove() {
     let playerHand = document.getElementById("playerHand").value.toUpperCase().split(" ");
     let dealerUpcard = document.getElementById("dealerUpcard").value.toUpperCase();
