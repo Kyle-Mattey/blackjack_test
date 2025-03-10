@@ -1,3 +1,7 @@
+Keeping this code instead, is there any improvements I can make to make this code below as accurate as possible so I know whether or not to bet and make sure that the hit stand double and split feature are all accurate?
+
+update this code to have the changes you made:
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -14,16 +18,15 @@
     </script>
     <style>
         body { font-family: Arial, sans-serif; text-align: center; background-color: #f4f4f4; margin: 0; padding: 20px; }
-        .container { max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px; background: white; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); }
-        .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-top: 20px; }
-        .button { padding: 20px; font-size: 22px; cursor: pointer; border-radius: 8px; border: none; font-weight: bold; width: 100%; height: 60px; }
-        .green { background-color: green; color: white; }
-        .red { background-color: red; color: white; }
-        .card-button { background-color: #007bff; color: white; }
-        .undo-button { background-color: orange; color: white; }
-        input { padding: 14px; font-size: 20px; width: 95%; text-align: center; margin: 10px 0; border-radius: 8px; border: 1px solid #ccc; }
-        h1 { font-size: 30px; margin-bottom: 10px; }
-        p { font-size: 20px; }
+.container { max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px; background: white; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); }
+.grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-top: 20px; }
+.button { padding: 15px; font-size: 18px; cursor: pointer; border-radius: 8px; border: none; font-weight: bold; width: 100%; }
+.green { background-color: green; color: white; }
+.red { background-color: red; color: white; }
+.card-button { background-color: #007bff; color: white; }
+input { padding: 12px; font-size: 18px; width: 90%; text-align: center; margin: 10px 0; border-radius: 8px; border: 1px solid #ccc; }
+h1 { font-size: 28px; margin-bottom: 10px; }
+p { font-size: 20px; }
     </style>
 </head>
 <body>
@@ -34,18 +37,23 @@
         <p><strong>True Count:</strong> <span id="trueCount">0.0</span></p>
         <p><strong>Estimated Decks Remaining:</strong> <span id="decksRemaining">6</span></p>
         <p><strong>Dealt Cards:</strong> <span id="dealtCards"></span></p>
-        <p><strong>Next Card Prediction:</strong> <span id="cardPrediction">N/A</span></p>
         <p><strong>Best Move:</strong> <span id="recommendation">N/A</span></p>
-        <p><strong>Betting Advice:</strong> <span id="betAdvice">N/A</span></p>
+        <p><strong>Next Card Prediction:</strong> <span id="cardPrediction">N/A</span></p>
 
         <div class="grid">
-            ["2", "3", "4", "5", "6", "7", "8", "9", "T", "J", "Q", "K", "A"].map(card => 
-                `<button class="button card-button" onclick="updateCount('${card}')">${card}</button>`
-            ).join('')
-        </div>
-
-        <div style="margin-top: 20px;">
-            <button class="button undo-button" onclick="undoLastCard()">Undo</button>
+            <button class="button" onclick="updateCount('2')">2</button>
+            <button class="button" onclick="updateCount('3')">3</button>
+            <button class="button" onclick="updateCount('4')">4</button>
+            <button class="button" onclick="updateCount('5')">5</button>
+            <button class="button" onclick="updateCount('6')">6</button>
+            <button class="button" onclick="updateCount('7')">7</button>
+            <button class="button" onclick="updateCount('8')">8</button>
+            <button class="button" onclick="updateCount('9')">9</button>
+            <button class="button" onclick="updateCount('T')">10</button>
+            <button class="button" onclick="updateCount('J')">J</button>
+            <button class="button" onclick="updateCount('Q')">Q</button>
+            <button class="button" onclick="updateCount('K')">K</button>
+            <button class="button" onclick="updateCount('A')">A</button>
         </div>
 
         <div style="margin-top: 20px;">
@@ -66,42 +74,100 @@
 
         function estimateDecksRemaining() {
             let totalCardsPlayed = dealtCards.length;
-            return Math.max(1, Math.ceil((312 - totalCardsPlayed) / 52));
+            if (totalCardsPlayed < 52) return 6;
+            if (totalCardsPlayed < 104) return 5;
+            if (totalCardsPlayed < 156) return 4;
+            if (totalCardsPlayed < 208) return 3;
+            if (totalCardsPlayed < 260) return 2;
+            return 1;
         }
 
         function updateCount(card) {
             if (card in cardValues) {
                 runningCount += cardValues[card];
                 dealtCards.push(card);
-                updateDisplay();
+                document.getElementById("runningCount").innerText = runningCount;
+                let decksRemaining = estimateDecksRemaining();
+                document.getElementById("trueCount").innerText = (runningCount / decksRemaining).toFixed(2);
+                document.getElementById("decksRemaining").innerText = decksRemaining;
+                document.getElementById("dealtCards").innerText = dealtCards.join(", ");
             }
         }
 
-        function undoLastCard() {
-            if (dealtCards.length > 0) {
-                let lastCard = dealtCards.pop();
-                runningCount -= cardValues[lastCard];
-                updateDisplay();
-            }
-        }
+        function predictNextCard() {
+    let totalCardsPlayed = dealtCards.length;
+    let totalDecks = estimateDecksRemaining();
+    let remainingCards = totalDecks * 52 - totalCardsPlayed;
 
-        function updateDisplay() {
-            let decksRemaining = estimateDecksRemaining();
-            let trueCount = runningCount / decksRemaining;
-            document.getElementById("runningCount").innerText = runningCount;
-            document.getElementById("trueCount").innerText = trueCount.toFixed(2);
-            document.getElementById("decksRemaining").innerText = decksRemaining;
-            document.getElementById("dealtCards").innerText = dealtCards.join(", ");
-            document.getElementById("betAdvice").innerText = trueCount >= 2 ? "Increase Bet" : trueCount <= -1 ? "Decrease Bet" : "Standard Bet";
+    let remainingCardCounts = { "2": 4 * totalDecks, "3": 4 * totalDecks, "4": 4 * totalDecks, "5": 4 * totalDecks, "6": 4 * totalDecks,
+        "7": 4 * totalDecks, "8": 4 * totalDecks, "9": 4 * totalDecks, "T": 16 * totalDecks, "J": 4 * totalDecks, "Q": 4 * totalDecks, "K": 4 * totalDecks, "A": 4 * totalDecks };
+
+    // Remove counted cards
+    dealtCards.forEach(card => {
+        if (remainingCardCounts[card] > 0) {
+            remainingCardCounts[card]--;
         }
+    });
+
+    // Count remaining high & low cards
+    let highCards = remainingCardCounts["T"] + remainingCardCounts["J"] + remainingCardCounts["Q"] + remainingCardCounts["K"] + remainingCardCounts["A"];
+    let lowCards = remainingCardCounts["2"] + remainingCardCounts["3"] + remainingCardCounts["4"] + remainingCardCounts["5"] + remainingCardCounts["6"];
+
+    // Calculate probabilities
+    let highCardChance = ((highCards / remainingCards) * 100).toFixed(1);
+    let lowCardChance = ((lowCards / remainingCards) * 100).toFixed(1);
+
+    // Display prediction
+    let predictionMessage = `High Card Chance: ${highCardChance}% | Low Card Chance: ${lowCardChance}%`;
+    document.getElementById("cardPrediction").innerText = predictionMessage;
+}
+
+       function getBestMove() {
+    let playerHand = document.getElementById("playerHand").value.toUpperCase().split(" ");
+    let dealerUpcard = document.getElementById("dealerUpcard").value.toUpperCase();
+    if (!playerHand.length || !dealerUpcard) return;
+
+    let firstCard = playerHand[0];
+    let secondCard = playerHand[1];
+    let total = playerHand.reduce((sum, card) => sum + (card === "A" ? 11 : card === "T" || ["J", "Q", "K"].includes(card) ? 10 : parseInt(card)), 0);
+    let recommendation = "Hit";
+
+    // ✅ **Improved Splitting Strategy**
+    if (firstCard === secondCard) {
+        if (["A", "8"].includes(firstCard)) recommendation = "Split";
+        else if (firstCard === "5" || firstCard === "T") recommendation = "Do Not Split";
+        else if (["2", "3", "6", "7"].includes(firstCard) && ["2", "3", "4", "5", "6"].includes(dealerUpcard)) recommendation = "Split";
+        else if (firstCard === "4" && ["5", "6"].includes(dealerUpcard)) recommendation = "Split";
+        else if (firstCard === "9" && !["7", "10", "A"].includes(dealerUpcard)) recommendation = "Split";
+        else recommendation = "Do Not Split";
+    } 
+
+    // ✅ **Improved Doubling Strategy**
+    else if (total === 11) recommendation = "Double Down";
+    else if (total === 10 && !["T", "A"].includes(dealerUpcard)) recommendation = "Double Down";
+    else if (total === 9 && ["3", "4", "5", "6"].includes(dealerUpcard)) recommendation = "Double Down";
+    else if (total === 8 && ["5", "6"].includes(dealerUpcard) && trueCount >= 2) recommendation = "Double Down"; 
+
+    // ✅ **Hit / Stand Adjustments Based on True Count**
+    else if (total >= 17) recommendation = "Stand";
+    else if (total <= 11) recommendation = "Hit";
+    else if (total >= 12 && total <= 16) {
+        recommendation = ["2", "3", "4", "5", "6"].includes(dealerUpcard) ? "Stand" : "Hit";
+        if (trueCount >= 2 && total === 16) recommendation = "Stand"; // Stand on 16 vs high if True Count is high
+        if (trueCount <= -1 && total === 13) recommendation = "Hit"; // Hit on 13 if True Count is bad
+    }
+
+    document.getElementById("recommendation").innerText = recommendation;
+}
 
         function resetGame() {
             runningCount = 0;
             dealtCards = [];
-            updateDisplay();
+            document.getElementById("runningCount").innerText = "0";
+            document.getElementById("trueCount").innerText = "0.0";
+            document.getElementById("decksRemaining").innerText = "6";
+            document.getElementById("dealtCards").innerText = "";
             document.getElementById("recommendation").innerText = "N/A";
-            document.getElementById("cardPrediction").innerText = "N/A";
-            document.getElementById("betAdvice").innerText = "N/A";
         }
     </script>
 
