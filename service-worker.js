@@ -4,7 +4,7 @@ self.addEventListener('install', function(event) {
             return cache.addAll([
                 'index.html',
                 'manifest.json',
-                'icon.png'
+                'icon.png'  // Make sure this file exists in your repo!
             ]);
         })
     );
